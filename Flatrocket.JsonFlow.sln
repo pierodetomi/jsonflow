@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flatrocket.JsonFlow.Sample", "Flatrocket.JsonFlow.Sample\Flatrocket.JsonFlow.Sample.csproj", "{E427E432-DD66-49C3-8440-0BFD6C6064D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Flatrocket.JsonFlow", "Flatrocket.JsonFlow\Flatrocket.JsonFlow.csproj", "{FD00DB3C-7DBC-4965-B1FA-C9F7535F202F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E427E432-DD66-49C3-8440-0BFD6C6064D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E427E432-DD66-49C3-8440-0BFD6C6064D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E427E432-DD66-49C3-8440-0BFD6C6064D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E427E432-DD66-49C3-8440-0BFD6C6064D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD00DB3C-7DBC-4965-B1FA-C9F7535F202F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD00DB3C-7DBC-4965-B1FA-C9F7535F202F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD00DB3C-7DBC-4965-B1FA-C9F7535F202F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD00DB3C-7DBC-4965-B1FA-C9F7535F202F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
