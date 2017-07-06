@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Flatrocket.JsonFlow.Models;
 using Flatrocket.JsonFlow.Tasks;
 using System;
 using System.CodeDom.Compiler;
@@ -25,37 +26,53 @@ namespace Flatrocket.JsonFlow.Helpers
             }
         }
 
-        public bool CompileAndEvaluateCondition(string condition, Dictionary<string, IWorkflowTask> inputs)
+        public bool EvaluateCondition(string condition, Dictionary<string, IWorkflowTask> inputs)
         {
-            CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
-
-            CompilerParameters cp = new CompilerParameters();
-
-            cp.ReferencedAssemblies.Add("System.dll");
-            cp.ReferencedAssemblies.Add("System.Core.dll");
-            cp.ReferencedAssemblies.Add("System.Data.dll");
-            cp.ReferencedAssemblies.Add("System.Linq.dll");
-            cp.ReferencedAssemblies.Add("Flatrocket.JsonFlow.dll");
-            cp.ReferencedAssemblies.Add("Microsoft.CSharp.dll");
-
-            // Save the assembly as a physical file.
-            cp.GenerateInMemory = true;
-
-            // Set whether to treat all warnings as errors.
-            cp.TreatWarningsAsErrors = false;
+            List<string> references = new List<string>
+            {
+                "System.dll",
+                "System.Core.dll",
+                "System.Data.dll",
+                "System.Linq.dll",
+                "Flatrocket.JsonFlow.dll",
+                "Microsoft.CSharp.dll"
+            };
 
             string code = dynamicExpressionCode.ToString();
             code = dynamicExpressionCode.Replace("/*CONDITION_PLACEHOLDER*/", condition);
 
-            // Invoke compilation of the source file.
-            CompilerResults cr = provider.CompileAssemblyFromSource(cp, code);
-            bool isValid = false;
+            DynamicCodeCompilationResult compilationResult = CompileExpression(
+                references,
+                code,
+                fqnClassName: "Flatrocket.JsonFlow.WorkflowDynamicExpression",
+                methodName: "EvaluateCondition");
 
-            if (cr.Errors.Count > 0)
+            object executionResult = compilationResult.Method.Invoke(compilationResult.Instance, new object[] { inputs });
+            return Convert.ToBoolean(executionResult);
+        }
+
+        public DynamicCodeCompilationResult CompileExpression(List<string> references, string code, string fqnClassName, string methodName)
+        {
+            CodeDomProvider provider = CodeDomProvider.CreateProvider("CSharp");
+            CompilerParameters compilerParameters = new CompilerParameters();
+
+            foreach(string reference in references)
+                compilerParameters.ReferencedAssemblies.Add(reference);
+
+            // Save the assembly as a physical file.
+            compilerParameters.GenerateInMemory = true;
+
+            // Set whether to treat all warnings as errors.
+            compilerParameters.TreatWarningsAsErrors = false;
+            
+            // Invoke compilation of the source file.
+            CompilerResults compilerResults = provider.CompileAssemblyFromSource(compilerParameters, code);
+
+            if (compilerResults.Errors.Count > 0)
             {
                 string errors = String.Empty;
 
-                foreach (CompilerError ce in cr.Errors)
+                foreach (CompilerError ce in compilerResults.Errors)
                     errors += $"- {ce}{Environment.NewLine}";
 
                 // Display compilation errors.
@@ -64,14 +81,16 @@ namespace Flatrocket.JsonFlow.Helpers
             else
             {
                 // Display a successful compilation message.
-                Assembly assembly = cr.CompiledAssembly;
-                object instance = assembly.CreateInstance("Flatrocket.JsonFlow.WorkflowDynamicExpression");
-                MethodInfo methodInfo = instance.GetType().GetMethod("EvaluateCondition");
+                Assembly assembly = compilerResults.CompiledAssembly;
+                object instance = assembly.CreateInstance(fqnClassName);
+                MethodInfo methodInfo = instance.GetType().GetMethod(methodName);
 
-                isValid = Convert.ToBoolean(methodInfo.Invoke(instance, new object[] { inputs }));
+                return new DynamicCodeCompilationResult
+                {
+                    Method = methodInfo,
+                    Instance = instance
+                };
             }
-
-            return isValid;
         }
     }
 }

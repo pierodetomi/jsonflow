@@ -48,17 +48,21 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers\DynamicCodeHelper.cs" />
+    <Compile Include="Models\DynamicCodeCompilationResult.cs" />
     <Compile Include="Models\Workflow.cs" />
     <Compile Include="Models\WorkflowGraphItem.cs" />
     <Compile Include="Models\WorkflowGraphItemReference.cs" />
     <Compile Include="Models\WorkflowTaskData.cs" />
     <Compile Include="Models\WorkflowTaskInfo.cs" />
+    <Compile Include="Models\WorkflowValidationError.cs" />
+    <Compile Include="Models\WorkflowValidationResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Content Include="Resources\WorkflowDynamicExpression.cs">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Compile Include="Tasks\IWorkflowTask.cs" />
     <Compile Include="Tasks\WorkflowBaseTask.cs" />
+    <Compile Include="WorkflowValidator.cs" />
     <Compile Include="WorkflowManager.cs" />
   </ItemGroup>
   <ItemGroup>

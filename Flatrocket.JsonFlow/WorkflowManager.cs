@@ -4,13 +4,10 @@ using Flatrocket.JsonFlow.Models;
 using Flatrocket.JsonFlow.Tasks;
 using Newtonsoft.Json;
 using System;
-using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Resources;
 using System.Text.RegularExpressions;
 
 namespace Flatrocket.JsonFlow
@@ -20,21 +17,21 @@ namespace Flatrocket.JsonFlow
         private IContainer container;
 
         private DynamicCodeHelper dynamicCode;
-        
+
+        private WorkflowValidator workflowValidator;
+
         private Workflow workflow;
 
         private WorkflowGraphItem currentGraphItem;
-
-        private IWorkflowTask executingTask;
 
         public bool IsFinished { get; private set; }
 
         public WorkflowManager(IContainer container)
         {
             this.container = container;
+            this.dynamicCode = new DynamicCodeHelper(container);
+            this.workflowValidator = new WorkflowValidator();
 
-            dynamicCode = new DynamicCodeHelper(container);
-            executingTask = null;
             IsFinished = false;
 
             LoadConfiguration();
@@ -48,10 +45,7 @@ namespace Flatrocket.JsonFlow
             if (taskInfo == null)
                 return;
 
-            List<WorkflowTaskData> parentOutputs = executingTask?.Outputs;
-
             IWorkflowTask task = GetTaskInstanceById(taskInfo.Id);
-            executingTask = task;
 
             // Clear outputs (in case this is the N-th time this task is executed)
             task.Outputs.Clear();
@@ -92,7 +86,7 @@ namespace Flatrocket.JsonFlow
                     IsFinished = true;
                     return null;
                 }
-                else if(graphItems.Count() == 1 && String.IsNullOrEmpty(graphItems.First().Parents.First().Condition))
+                else if(graphItems.Count() == 1 && String.IsNullOrEmpty(graphItems.First().Parents.Single(p => p.Id == currentGraphItem.TaskId).Condition))
                 {
                     currentGraphItem = graphItems.First();
                 }
@@ -154,7 +148,7 @@ namespace Flatrocket.JsonFlow
                         condition = condition.Insert(match.Index, $"inputs[\"{taskIdReference}\"].Outputs.Single(o => o.Name == \"{outputField}\").Value");
                     }
 
-                    if(dynamicCode.CompileAndEvaluateCondition(condition, inputs))
+                    if(dynamicCode.EvaluateCondition(condition, inputs))
                     {
                         matchingGraphItem = graphItem;
                         break;
@@ -189,6 +183,11 @@ namespace Flatrocket.JsonFlow
             {
                 throw new Exception($"Error loading workflow configuration file.{Environment.NewLine}{ex.Message}");
             }
+
+            WorkflowValidationResult validationResult = workflowValidator.Validate(workflow);
+
+            if(!validationResult.IsValid)
+                throw new Exception($"There are errors in your workflow configuration file.{Environment.NewLine}{validationResult}");
         }
 
         private void LoadTasks()
